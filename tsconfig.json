@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "ES5",
+    "module": "es2015",
+    "lib": [
+      "es5",
+      "dom"
+    ],                             
+    "allowJs": true,
+    "removeComments": true,
+    "strict": false,
+    "esModuleInterop": true
+  }
+}
