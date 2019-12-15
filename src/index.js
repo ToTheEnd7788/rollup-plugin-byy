@@ -15,7 +15,7 @@ function readConfigFile(ts) {
 
 export default function byy () {
   let regExp = /\.byy$/,
-    styleStr,
+    styleStr = {},
     label = 0;
 
   return {
@@ -28,12 +28,6 @@ export default function byy () {
           encoding: "utf-8"
         });
       })
-    },
-
-    buildEnd(b) {
-      fs.rmdirSync(".temp", {
-        recursive: true
-      });
     },
 
     resolveId(id) {
@@ -49,8 +43,7 @@ export default function byy () {
 
         let pos = script.lastIndexOf('}');
 
-        styleStr = style;
-
+        styleStr[label] = style;
         script = `${script.slice(0, pos)},\n${renderStr}${script.slice(pos)}`;
         
         for (let key in renderFuncList) {
@@ -69,10 +62,20 @@ export default function byy () {
       } 
       
       if (/\.temp.+$/.test(id)) {
-        label++;
+        let target = parseInt(id.replace(/.+index-([0-9]+)\.scss$/, "$1")),
+        stylesLength = Object.keys(styleStr).length;
 
-        fs.renameSync(`.temp/index-${ label - 1 }.scss`, `.temp/index-${ label }.scss`);
-        return { code: styleStr, map: null };
+        fs.renameSync(`.temp/index-${target}.scss`, `.temp/index-${ target + 1 }.scss`);
+        if (target === stylesLength - 1) {
+          fs.rmdirSync(".temp", {
+            recursive: true
+          });
+        }
+
+        return {
+          code: styleStr[`${target}`],
+          map: null
+        };
       }
     },
 
@@ -81,6 +84,8 @@ export default function byy () {
         let src =
           `import "__temp/index-${label}";\n` +
           `${code}`;
+
+        label++;
 
         return src;
       }
