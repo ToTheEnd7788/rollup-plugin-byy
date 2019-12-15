@@ -1,6 +1,6 @@
 {
   "name": "rollup-plugin-byy",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "A plugin to translate byy template file base on rollup",
   "main": "./lib/index.js",
   "repository": "git@github.com:ToTheEnd0314/rollup-plugin-byy.git",
