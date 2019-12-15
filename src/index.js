@@ -86,13 +86,10 @@ export default function byy () {
       }
     },
 
-    generateBundle(a, b) {
-      for (let name in b) {
-        b[name].code = ts.transpileModule(b[name].code, {
-          compilerOptions: ts.convertCompilerOptionsFromJson(readConfigFile(ts), process.cwd()).options
-        }).outputText;
-      }
-      
-    }
+    renderChunk(code) {
+      return ts.transpileModule(code, {
+        compilerOptions: ts.convertCompilerOptionsFromJson(readConfigFile(ts), process.cwd()).options
+      }).outputText;
+    },
   };
 }
