@@ -1,4 +1,4 @@
-import { parseFragment } from "parse5";
+import { parseFragment } from "parse5-byy";
 
 export default class  {
   constructor(tpl) {
