@@ -22,6 +22,7 @@ export default function byy () {
     name: "byy",
 
     buildStart() {
+      label = 0;
       fs.stat("./.temp", {}, err => {
         if (err) fs.mkdirSync('.temp');
         fs.writeFileSync(`.temp/index-${label}.scss`, "This is a middleware target...", {
@@ -44,6 +45,7 @@ export default function byy () {
         let pos = script.lastIndexOf('}');
 
         styleStr[label] = style;
+        label++;
         script = `${script.slice(0, pos)},\n${renderStr}${script.slice(pos)}`;
         
         for (let key in renderFuncList) {
@@ -84,8 +86,6 @@ export default function byy () {
         let src =
           `import "__temp/index-${label}";\n` +
           `${code}`;
-
-        label++;
 
         return src;
       }
