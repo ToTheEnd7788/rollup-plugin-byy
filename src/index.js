@@ -84,7 +84,7 @@ export default function byy () {
     transform(code, id) {
       if (regExp.test(id)) {
         let src =
-          `import "__temp/index-${label}";\n` +
+          `import "__temp/index-${label - 1}";\n` +
           `${code}`;
 
         return src;
