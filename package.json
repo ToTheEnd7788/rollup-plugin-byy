@@ -1,6 +1,6 @@
 {
   "name": "rollup-plugin-byy",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "A plugin to translate byy template file base on rollup",
   "main": "./lib/index.js",
   "repository": "git@github.com:ToTheEnd0314/rollup-plugin-byy.git",
@@ -29,7 +29,7 @@
   ],
   "dependencies": {
     "js-beautify": "^1.10.2",
-    "parse5-byy": "^5.1.2",
+    "parse5-byy": "^5.1.3",
     "typescript": "^3.7.3"
   }
 }
