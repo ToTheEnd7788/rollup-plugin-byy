@@ -142,10 +142,13 @@ class TransformRender {
   }
 
   __solveOriginEvent(value) {
-    let exp = /^(.+)\((.+)\)$/;
+    let exp = /^(.+)\((.+)\)$/,
+      result;
     
     let funcName = value.replace(exp, "$1"),
-    paramsList = value.replace(exp, "$2").split(","),
+    paramsList = value.replace(exp, "$2") !== funcName
+      ? value.replace(exp, "$2").split(",")
+      : [],
     paramsStr = paramsList.reduce((acc, item, index, arr) => {
       item = item.trim();
       if (item === "$event") item = `"${item}"`;
@@ -157,9 +160,13 @@ class TransformRender {
       }
 
       return acc;
-    }, "")
+    }, "");
 
-    return `[${funcName}, ${paramsStr}]`;
+    result = paramsStr
+      ? `[${funcName}, ${paramsStr}]`
+      : `[${funcName}]`;
+
+    return result;
   }
 
   __buildRenderListFunc(name, value, node) {
