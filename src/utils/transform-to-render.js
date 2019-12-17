@@ -79,18 +79,49 @@ class TransformRender {
         }, map[key]['begin']);
       }
     } else {
+      let bModelList = node.attrs.reduce((acc, item) => {
+        if (item.name === "b-model") {
+          acc.push({
+            name: "@input",
+            value: `[
+              (e) => {
+                if (e.target.value !== ${item.value}) {
+                  this.$set("${item.value.replace(/^this\.(.+)$/, "$1")}", e.target.value)
+                }
+              },
+              '$event'
+            ]`,
+            solved: true
+          });
+        }
+        return acc;
+      }, [])
+      ats = ats.concat(bModelList);
       ats = ats.map(item => {
         let temp = item;
 
         if (atExp.test(item.name)) {
-          temp.value = this.__solveOriginEvent(item.value);
+          if (item.solved) temp.value = item.value;
+          else temp.value = this.__solveOriginEvent(item.value);
         }
 
         return temp;
       });
 
+      let bModelIndex = node.attrs.findIndex(item => {
+        return item.name === "b-model";
+      });
+
+      if (bModelIndex > -1) {
+        colons.push({
+          name: ":value",
+          value: node.attrs[bModelIndex].value
+        });
+        node.attrs.splice(bModelIndex, 1);
+      }
+
       let commons = node.attrs.filter(item => {
-        return /^[a-z].+$/.test(item.name)
+        return /^[a-z].+$/.test(item.name);
       }),
         map = {
           on: {
