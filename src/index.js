@@ -13,39 +13,44 @@ function readConfigFile(ts) {
   }).config.compilerOptions;
 }
 
-export default function byy () {
-  let regExp = /\.byy$/,
-    styleStr = {},
-    label = 0;
+function tsify(code) {
+  return beautify(ts.transpileModule(code, {
+    compilerOptions: ts.convertCompilerOptionsFromJson(
+      readConfigFile(ts),
+      process.cwd()
+    ).options
+  }).outputText, {
+    indent_size: 2,
+    space_in_empty_paren: false
+  });
+}
+
+export default function () {
+    let regExp = /\.byy$/,
+      styleStr = {};
 
   return {
     name: "byy",
 
-    buildStart() {
-      label = 0;
-      fs.stat("./.temp", {}, err => {
-        if (err) fs.mkdirSync('.temp');
-        fs.writeFileSync(`.temp/index-${label}.scss`, "This is a middleware target...", {
-          encoding: "utf-8"
-        });
-      })
-    },
-
-    resolveId(id) {
-      return id
-    },
-
     load(id) {
+      if (/.+byy\.scss$/.test(id)) {
+        return styleStr[id];
+      }
+
+      return null;
+    },
+
+    resolveId(source) {
+      return source;
+    },
+
+    transform(code, id) {
       if (regExp.test(id)) {
-        let source = fs.readFileSync(id).toString();
-        let { template, script, style } = new SplitCode(source);
+        let { template, script, style } = new SplitCode(code),
+          { renderStr, renderFuncList } = new TransformRender(template),
+          pos = script.lastIndexOf('}');
 
-        let { renderStr, renderFuncList } = new TransformRender(template);
-
-        let pos = script.lastIndexOf('}');
-
-        styleStr[label] = style;
-        label++;
+        styleStr[`${id}.scss`] = style;
         script = `${script.slice(0, pos)},\n${renderStr}${script.slice(pos)}`;
         
         for (let key in renderFuncList) {
@@ -54,47 +59,25 @@ export default function byy () {
           script = `${script.slice(0, curBegin)}${renderFuncList[key]},\n${script.slice(curBegin)}`
         }
 
-        return {
-          code: beautify(script, {
-            indent_size: 2,
-            space_in_empty_paren: false
-          }),
-          map: null
-        };
-      } 
-      
-      if (/\.temp.+$/.test(id)) {
-        let target = parseInt(id.replace(/.+index-([0-9]+)\.scss$/, "$1")),
-        stylesLength = Object.keys(styleStr).length;
-
-        fs.renameSync(`.temp/index-${target}.scss`, `.temp/index-${ target + 1 }.scss`);
-        if (target === stylesLength - 1) {
-          fs.rmdirSync(".temp", {
-            recursive: true
-          });
-        }
-
-        return {
-          code: styleStr[`${target}`],
-          map: null
-        };
-      }
-    },
-
-    transform(code, id) {
-      if (regExp.test(id)) {
         let src =
-          `import "__temp/index-${label - 1}";\n` +
-          `${code}`;
+          `import "${id}.scss"
+          ${script}
+          `;
 
         return src;
       }
     },
 
-    renderChunk(code) {
-      return ts.transpileModule(code, {
-        compilerOptions: ts.convertCompilerOptionsFromJson(readConfigFile(ts), process.cwd()).options
-      }).outputText;
-    },
+    generateBundle({}, bundle) {
+      for (let name in bundle) {
+        if (/\.js$/.test(name)) {
+          if (bundle[name].type === "asset") {
+            bundle[name].source = tsify(bundle[name].source);
+          } else {
+            bundle[name].code = tsify(bundle[name].code);
+          }
+        }
+      }
+    }
   };
 }
